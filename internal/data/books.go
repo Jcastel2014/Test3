@@ -74,17 +74,17 @@ func (b BookClub) InsertBook(book *Book) error {
 
 	err, idA := b.DoesAuthorExists(book.Author)
 
-	if err != nil {
-		return err
-	}
-
-	if idA == 0 {
+	if idA == -1 {
 
 		args := []any{book.Author}
 		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 		defer cancel()
 
 		err = b.DB.QueryRowContext(ctx, query, args...).Scan(&idA)
+
+		if err != nil {
+			return err
+		}
 
 	}
 
@@ -93,10 +93,6 @@ func (b BookClub) InsertBook(book *Book) error {
 	// defer cancel()
 
 	// err = b.DB.QueryRowContext(ctx, query, args...).Scan(&idA)
-
-	if err != nil {
-		return err
-	}
 
 	query = `
 	
@@ -177,7 +173,7 @@ func (b BookClub) GetBook(id int64) (*Book, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	err := b.DB.QueryRowContext(ctx, query, args...).Scan(&book.ID, &book.Title, &book.ID, &book.Author, &book.Publication_Date, &book.Genre, &book.Description, &book.Average_rating)
+	err := b.DB.QueryRowContext(ctx, query, args...).Scan(&book.ID, &book.Title, &book.ISBN, &book.Author, &book.Publication_Date, &book.Genre, &book.Description, &book.Average_rating)
 
 	if err != nil {
 		switch {
@@ -191,60 +187,110 @@ func (b BookClub) GetBook(id int64) (*Book, error) {
 
 }
 
-// func (p ProductModel) UpdateReview(review *Reviews, id int64) error {
-// 	query := `
-// 	UPDATE reviews
-// 	SET rating =$1, comment=$2, updated_at=$3
-// 	WHERE id = $4
-// 	RETURNING product_id
-// 	`
+func (b BookClub) UpdateBook(book *Book, id int64) error {
 
-// 	args := []any{review.Rating, review.Comment, time.Now(), id}
-// 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-// 	defer cancel()
+	var idA int
 
-// 	err := p.DB.QueryRowContext(ctx, query, args...).Scan(&review.ID)
+	query := `
+	INSERT INTO authors(name)
+	VALUES ($1)
+	RETURNING id
+	
+	`
 
-// 	if err != nil {
-// 		return err
-// 	}
+	err, idA := b.DoesAuthorExists(book.Author)
 
-// 	return p.UpdateAverage(review.ID)
+	if err != nil {
+		return err
+	}
 
-// }
+	if idA == -1 {
 
-// func (p ProductModel) DeleteReview(id int64, rid int64) error {
-// 	err := p.DoesProductExists(id)
+		args := []any{book.Author}
+		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+		defer cancel()
 
-// 	if err != nil {
-// 		return err
-// 	}
+		err = b.DB.QueryRowContext(ctx, query, args...).Scan(&idA)
 
-// 	query := `
-// 	DELETE FROM reviews
-// 	WHERE ID = $1
-// 	`
+		if err != nil {
+			return err
+		}
 
-// 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-// 	defer cancel()
+	}
 
-// 	result, err := p.DB.ExecContext(ctx, query, rid)
-// 	if err != nil {
-// 		return err
-// 	}
+	query = `
+	UPDATE book_authors
+	SET author_id = $1
+	WHERE book_id = $2
+	RETURNING book_id
 
-// 	rowsAffected, err := result.RowsAffected()
-// 	if err != nil {
-// 		return err
-// 	}
 
-// 	if rowsAffected == 0 {
-// 		return ErrRecordNotFound
-// 	}
+	`
 
-// 	return p.UpdateAverage(id)
+	args := []any{idA, id}
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
 
-// }
+	err = b.DB.QueryRowContext(ctx, query, args...).Scan(&book.ID)
+
+	if err != nil {
+		return err
+	}
+
+	query = `
+	UPDATE books
+	SET title = $1, isbn = $2, publication_date = $3, genre = $4, description = $5
+	WHERE id = $6
+	RETURNING id
+
+
+	`
+
+	args = []any{book.Title, book.ISBN, book.Publication_Date, book.Genre, book.Description, id}
+	ctx, cancel = context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	err = b.DB.QueryRowContext(ctx, query, args...).Scan(&book.ID)
+
+	if err != nil {
+
+		return err
+	}
+
+	return nil
+	// return p.UpdateAverage(review.ID)
+
+}
+
+func (b BookClub) DeleteBook(id int64) error {
+
+	query := `
+	DELETE FROM books
+	WHERE id = $1
+	`
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	result, err := b.DB.ExecContext(ctx, query, id)
+	if err != nil {
+		return err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if rowsAffected == 0 {
+		return ErrRecordNotFound
+	}
+
+	return nil
+
+	// return p.UpdateAverage(id)
+
+}
 
 // func (p ProductModel) DoesProductExists(id int64) error {
 // 	query := `

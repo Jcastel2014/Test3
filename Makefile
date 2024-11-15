@@ -22,7 +22,7 @@ db/migrations/up:
 .PHONY: addBook
 addBook:
 	@echo 'Creating Review'; \
-	BODY='{"title":"Franny and Zooey","isbn": "9780316769495","author": "J.D. Salinger","genre": "Fiction","description": "A novel about the struggles of a disaffected teenager, Holden Caulfield, in post-WWII New York City.","created_at": "1951-07-16T00:00:00Z"}'; \
+	BODY='{"title":"Animal Farm","isbn":"1","author":"George Orwell","genre":"Political Satire","description":"A satirical novella that allegorizes the events leading up to the Russian Revolution and the rise of Stalinism, told through the story of farm animals overthrowing their human owner.","created_at":"1945-08-17T00:00:00Z"}'; \
 	curl -X POST -d "$$BODY" localhost:3000/api/v1/books; \
 
 .PHONY: getAllBooks
@@ -33,7 +33,17 @@ getAllBooks:
 .PHONY: getBook
 getBook:
 	@echo 'Displaying Product'; \
-	curl -i localhost:3000/api/v1/book/${id} 
+	curl -i localhost:3000/api/v1/books/${id} 
+
+.PHONY: putBook
+putBook:
+	@echo 'Updating Product ${id}'; \
+	curl -X PUT localhost:3000/api/v1/books/${id} -d '{"Description":"Updated Description", "genre":"Idk"}'
+
+.PHONY: deleteBook
+deleteBook:
+	@echo 'Deleting Product'; \
+	curl -X DELETE localhost:3000/api/v1/books/${id} 
 
 .PHONY: run/rateLimite/enabled
 run/rateLimit,enabled:
@@ -45,10 +55,7 @@ run/rateLimit/disabled:
 	@echo 'Running Product API /w Rate Limit...'
 	@go run ./cmd/api -port=3000 -env=development -limiter-burst=5 -limiter-rps=2 -limiter-enabled=false -db-dsn=${PRODUCTS_DB_DSN}
 
-.PHONY: deleteProduct
-deleteProduct:
-	@echo 'Deleting Product'; \
-	curl -X DELETE localhost:3000/deleteProduct/${id} 
+
 
 .PHONY: displayAllProducts
 displayAllProducts:
@@ -60,10 +67,7 @@ listProducts:
 	@echo 'Deleting Product'; \
 	curl -i localhost:3000/displayAllProducts?${filter}
 
-.PHONY: updateProduct
-updateProduct:
-	@echo 'Updating Product ${id}'; \
-	curl -X PATCH localhost:3000/updateProduct/${id} -d '{"name":"Spoom", "Description":"Mouth!"}'
+
 
 
 .PHONY: createReview

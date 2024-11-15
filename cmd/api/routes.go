@@ -13,8 +13,10 @@ func (a *appDependencies) routes() http.Handler {
 	router.MethodNotAllowed = http.HandlerFunc(a.notAllowedResponse)
 
 	router.HandlerFunc(http.MethodGet, "/api/v1/books", a.GetAllBooks)
-	router.HandlerFunc(http.MethodGet, "/api/v1/book/:id", a.getBook)
+	router.HandlerFunc(http.MethodGet, "/api/v1/books/:id", a.getBook)
 	router.HandlerFunc(http.MethodPost, "/api/v1/books", a.postBook)
+	router.HandlerFunc(http.MethodPut, "/api/v1/books/:id", a.PutBook)
+	router.HandlerFunc(http.MethodDelete, "/api/v1/books/:id", a.deleteBook)
 
 	// router.HandlerFunc(http.MethodPost, "/createProduct", a.createProduct)
 	// router.HandlerFunc(http.MethodGet, "/displayProduct/:id", a.displayProduct)

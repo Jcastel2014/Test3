@@ -2,6 +2,7 @@ package data
 
 import (
 	"context"
+	"log"
 	"time"
 
 	"github.com/Jcastel2014/test3/internal/validator"
@@ -22,12 +23,10 @@ func (b BookClub) DoesAuthorExists(author string) (error, int) {
 
 	err := b.DB.QueryRowContext(ctx, query, args...).Scan(&id)
 
+	log.Println(id)
+
 	if err != nil {
 		return err, -1
-	}
-
-	if id < 1 {
-		return nil, 0
 	}
 
 	return nil, id
@@ -39,7 +38,7 @@ func ValidateBook(v *validator.Validator, book *Book) {
 	v.Check(len(book.Title) <= 255, "title", "must not be more than 100 byte long")
 
 	v.Check(book.ISBN != "", "isbn", "must be provided")
-	v.Check(len(book.ISBN) == 13, "isbn", "must be exactly 13 characters long")
+	v.Check(len(book.ISBN) <= 255, "isbn", "must not be more than 100 byte long")
 
 	v.Check(book.Author != "", "author", "must be provided")
 	v.Check(len(book.Author) <= 100, "author", "must not be more than 100 characters long")

@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"fmt"
+	"log"
 	"net/http"
 	"time"
 
@@ -51,7 +52,7 @@ func (a *appDependencies) postBook(w http.ResponseWriter, r *http.Request) {
 	}
 
 	headers := make(http.Header)
-	headers.Set("Location", fmt.Sprintf("/review/%d", book.ID))
+	headers.Set("Location", fmt.Sprintf("/book/%d", book.ID))
 
 	data := envelope{
 		"book": book,
@@ -102,108 +103,130 @@ func (a *appDependencies) getBook(w http.ResponseWriter, r *http.Request) {
 
 }
 
-// func (a *appDependencies) updateReview(w http.ResponseWriter, r *http.Request) {
+func (a *appDependencies) PutBook(w http.ResponseWriter, r *http.Request) {
 
-// 	id, rid, err := a.readIDParam(r)
+	id, err := a.readIDParam(r)
 
-// 	if err != nil {
-// 		a.notFoundResponse(w, r)
-// 		return
-// 	}
+	if err != nil {
+		a.notFoundResponse(w, r)
+		return
+	}
 
-// 	review, err := a.productModel.GetReview(id, rid)
+	book, err := a.bookclub.GetBook(id)
 
-// 	if err != nil {
-// 		switch {
-// 		case errors.Is(err, data.ErrRecordNotFound):
-// 			a.notFoundResponse(w, r)
-// 		default:
-// 			a.serverErrResponse(w, r, err)
-// 		}
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			a.notFoundResponse(w, r)
+		default:
+			a.serverErrResponse(w, r, err)
+		}
 
-// 		return
-// 	}
+		return
+	}
 
-// 	var incomingData struct {
-// 		Rating  *float64 `json:"rating"`
-// 		Comment *string  `json:"comment"`
-// 	}
+	var incomingData struct {
+		Title            *string    `json:"title"`
+		ISBN             *string    `json:"isbn"`
+		Author           *string    `json:"author"`
+		Genre            *string    `json:"genre"`
+		Description      *string    `json:"description"`
+		Publication_Date *time.Time `json:"created_at"`
+	}
 
-// 	err = a.readJSON(w, r, &incomingData)
+	err = a.readJSON(w, r, &incomingData)
 
-// 	if err != nil {
-// 		a.badRequestResponse(w, r, err)
-// 		return
-// 	}
+	if err != nil {
+		a.badRequestResponse(w, r, err)
+		return
+	}
 
-// 	if incomingData.Rating != nil {
-// 		review.Rating = *incomingData.Rating
-// 	}
+	if incomingData.Title != nil {
+		book.Title = *incomingData.Title
+	}
 
-// 	if incomingData.Comment != nil {
-// 		review.Comment = *incomingData.Comment
-// 	}
+	if incomingData.ISBN != nil {
+		book.ISBN = *incomingData.ISBN
+	}
 
-// 	v := validator.New()
+	if incomingData.Author != nil {
+		book.Author = *incomingData.Author
+	}
 
-// 	data.ValidateReview(v, review, 1)
-// 	if !v.IsEmpty() {
-// 		a.failedValidationResponse(w, r, v.Errors)
+	if incomingData.Genre != nil {
+		book.Genre = *incomingData.Genre
+	}
 
-// 		return
-// 	}
+	if incomingData.Description != nil {
+		book.Description = *incomingData.Description
+	}
 
-// 	err = a.productModel.UpdateReview(review, rid)
+	if incomingData.Publication_Date != nil {
+		book.Publication_Date = *incomingData.Publication_Date
+	}
 
-// 	if err != nil {
-// 		a.serverErrResponse(w, r, err)
-// 		return
-// 	}
+	log.Println(book.ISBN)
 
-// 	data := envelope{
-// 		"review": review,
-// 	}
+	v := validator.New()
 
-// 	err = a.writeJSON(w, http.StatusOK, data, nil)
-// 	if err != nil {
-// 		a.serverErrResponse(w, r, err)
-// 		return
-// 	}
+	data.ValidateBook(v, book)
+	if !v.IsEmpty() {
+		a.failedValidationResponse(w, r, v.Errors)
 
-// }
+		return
+	}
 
-// func (a *appDependencies) deleteReview(w http.ResponseWriter, r *http.Request) {
+	err = a.bookclub.UpdateBook(book, id)
 
-// 	id, rid, err := a.readIDParam(r)
+	if err != nil {
+		a.serverErrResponse(w, r, err)
+		return
+	}
 
-// 	if err != nil {
-// 		a.notFoundResponse(w, r)
-// 		return
-// 	}
+	data := envelope{
+		"book": book,
+	}
 
-// 	err = a.productModel.DeleteReview(id, rid)
+	err = a.writeJSON(w, http.StatusOK, data, nil)
+	if err != nil {
+		a.serverErrResponse(w, r, err)
+		return
+	}
 
-// 	if err != nil {
-// 		switch {
-// 		case errors.Is(err, data.ErrRecordNotFound):
-// 			a.notFoundResponse(w, r)
-// 		default:
-// 			a.serverErrResponse(w, r, err)
-// 		}
+}
 
-// 		return
-// 	}
+func (a *appDependencies) deleteBook(w http.ResponseWriter, r *http.Request) {
 
-// 	data := envelope{
-// 		"message": "comment successfully deleted",
-// 	}
+	id, err := a.readIDParam(r)
 
-// 	err = a.writeJSON(w, http.StatusOK, data, nil)
-// 	if err != nil {
-// 		a.serverErrResponse(w, r, err)
-// 	}
+	if err != nil {
+		a.notFoundResponse(w, r)
+		return
+	}
 
-// }
+	err = a.bookclub.DeleteBook(id)
+
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			a.notFoundResponse(w, r)
+		default:
+			a.serverErrResponse(w, r, err)
+		}
+
+		return
+	}
+
+	data := envelope{
+		"message": "comment successfully deleted",
+	}
+
+	err = a.writeJSON(w, http.StatusOK, data, nil)
+	if err != nil {
+		a.serverErrResponse(w, r, err)
+	}
+
+}
 
 func (a *appDependencies) GetAllBooks(w http.ResponseWriter, r *http.Request) {
 	var queryParametersData struct {
