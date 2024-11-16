@@ -2,8 +2,9 @@ package data
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"fmt"
-	"log"
 	"time"
 )
 
@@ -13,6 +14,7 @@ type ReadList struct {
 	Description string `json:"description"`
 	Created_by  string `json:"created_by"`
 	Status      string `json:"status"`
+	Book        []*Book
 }
 
 func (b BookClub) InsertList(readList *ReadList) error {
@@ -62,6 +64,10 @@ func (b BookClub) GetAllLists(filters Filters) ([]*ReadList, error) {
 		if err != nil {
 			return nil, err
 		}
+		readList.Book, err = b.GetAllById(readList.ID)
+		if err != nil {
+			return nil, err
+		}
 
 		readLists = append(readLists, &readList)
 	}
@@ -78,14 +84,12 @@ func (b BookClub) ListAddBook(id int64, bid int64) error {
 	err := b.DoesBookExists(bid)
 
 	if err != nil {
-		log.Println("Book not found with id %d", bid)
 		return err
 	}
 
 	err = b.DoesListExists(id)
 
 	if err != nil {
-		fmt.Sprintf("lsit not found %d", id)
 		return err
 	}
 
@@ -101,5 +105,44 @@ func (b BookClub) ListAddBook(id int64, bid int64) error {
 	defer cancel()
 
 	return b.DB.QueryRowContext(ctx, query, args...).Scan(&id)
+
+}
+
+func (b BookClub) GetList(id int64) (*ReadList, error) {
+	if id < 1 {
+		return nil, ErrRecordNotFound
+	}
+	query := `
+	SELECT R.id, R.name, R.description, U.user_name AS created_by, S.name as status 
+	FROM readList AS R 
+	INNER JOIN users AS U 
+	ON R.created_by = U.id 
+	INNER JOIN status AS S 
+	ON R.status = S.id
+	WHERE R.id = $1
+
+	`
+
+	args := []any{id}
+
+	var readList ReadList
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	err := b.DB.QueryRowContext(ctx, query, args...).Scan(&readList.ID, &readList.Name, &readList.Description, &readList.Created_by, &readList.Status)
+
+	if err != nil {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return nil, ErrRecordNotFound
+		default:
+			return nil, err
+		}
+	}
+
+	readList.Book, _ = b.GetAllById(id)
+
+	return &readList, nil
 
 }

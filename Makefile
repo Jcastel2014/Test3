@@ -49,7 +49,7 @@ deleteBook:
 .PHONY: createList
 createList:
 	@echo 'Creating List'; \
-	BODY='{"name":"test1","description":"test2","created_by":"carlos"}'; \
+	BODY='{"name":"test2","description":"test2","created_by":"carlos"}'; \
 	curl -X POST -d "$$BODY" localhost:3000/api/v1/lists; \
 
 .PHONY: getAllLists
@@ -60,8 +60,13 @@ getAllLists:
 .PHONY: listAddBook
 listAddBook:
 	@echo 'Adding book to list'; \
-	BODY='{"bookid":1}'; \
+	BODY='{"bookid":2}'; \
 	curl -X POST -d "$$BODY" localhost:3000/api/v1/lists/${id}/books ; \
+
+.PHONY: getList
+getList:
+	@echo 'Displaying List'; \
+	curl -i localhost:3000/api/v1/lists/${id}
 
 
 .PHONY: run/rateLimite/enabled
@@ -91,10 +96,7 @@ listProducts:
 
 
 	
-.PHONY: getReview
-getReview:
-	@echo 'Displaying Review'; \
-	curl -i localhost:3000/product/${id}/getReview/${rid}
+
 	
 .PHONY: updateReview
 updateReview:

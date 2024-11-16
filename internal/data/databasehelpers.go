@@ -8,6 +8,53 @@ import (
 	"github.com/Jcastel2014/test3/internal/validator"
 )
 
+func (b BookClub) GetAllById(id int64) ([]*Book, error) {
+
+	query := `
+	
+	SELECT B.id, B.title, B.isbn, A.name AS author, B.publication_date, B.genre, B.description, B.average_rating
+	FROM books AS B
+	INNER JOIN book_authors AS BA 
+	ON B.id = BA.book_id
+	INNER JOIN authors AS A 
+	ON A.id = BA.author_id
+	INNER JOIN book_list AS BL
+	ON BL.book_id = B.id
+	WHERE BL.list_id = $1
+	
+	`
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	rows, err := b.DB.QueryContext(ctx, query, id)
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	books := []*Book{}
+
+	for rows.Next() {
+		var book Book
+		err := rows.Scan(&book.ID, &book.Title, &book.ISBN, &book.Author, &book.Publication_Date, &book.Genre, &book.Description, &book.Average_rating)
+		if err != nil {
+			return nil, err
+		}
+
+		books = append(books, &book)
+	}
+
+	err = rows.Err()
+	if err != nil {
+		return nil, err
+	}
+
+	return books, nil
+
+}
+
 func (b BookClub) DoesAuthorExists(author string) (error, int) {
 	query := `
 		SELECT id

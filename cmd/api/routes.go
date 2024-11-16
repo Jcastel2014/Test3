@@ -28,6 +28,7 @@ func (a *appDependencies) routes() http.Handler {
 	// GET    /api/v1/lists              # Get all reading lists
 	router.HandlerFunc(http.MethodGet, "/api/v1/lists", a.getAllLists)
 	// GET    /api/v1/lists/{id}         # Get specific reading list
+	router.HandlerFunc(http.MethodGet, "/api/v1/lists/:id", a.getList)
 	// POST   /api/v1/lists              # Create new reading list
 	router.HandlerFunc(http.MethodPost, "/api/v1/lists", a.postReadingList)
 	// PUT    /api/v1/lists/{id}         # Update reading list

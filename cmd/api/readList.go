@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 
@@ -141,5 +142,39 @@ func (a *appDependencies) listAddBook(w http.ResponseWriter, r *http.Request) {
 	}
 
 	fmt.Fprintf(w, "%+v\n", incomingData)
+
+}
+
+func (a *appDependencies) getList(w http.ResponseWriter, r *http.Request) {
+
+	id, err := a.readIDParam(r)
+
+	if err != nil {
+		a.notFoundResponse(w, r)
+		return
+	}
+
+	readList, err := a.bookclub.GetList(id)
+
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			a.notFoundResponse(w, r)
+		default:
+			a.serverErrResponse(w, r, err)
+		}
+
+		return
+	}
+
+	data := envelope{
+		"readList": readList,
+	}
+
+	err = a.writeJSON(w, http.StatusOK, data, nil)
+	if err != nil {
+		a.serverErrResponse(w, r, err)
+		return
+	}
 
 }
