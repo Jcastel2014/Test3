@@ -45,6 +45,14 @@ deleteBook:
 	@echo 'Deleting Product'; \
 	curl -X DELETE localhost:3000/api/v1/books/${id} 
 
+
+.PHONY: createList
+createList:
+	@echo 'Creating List'; \
+	BODY='{"name":"test1","description":"test2","created_by":"carlos"}'; \
+	curl -X POST -d "$$BODY" localhost:3000/api/v1/lists; \
+
+
 .PHONY: run/rateLimite/enabled
 run/rateLimit,enabled:
 	@echo 'Running Product API /w Rate Limit...'

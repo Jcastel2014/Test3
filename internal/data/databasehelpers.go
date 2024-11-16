@@ -56,3 +56,20 @@ func ValidateBook(v *validator.Validator, book *Book) {
 	// v.Check(len(review.Comment) <= 100, "comment", "must not be more than 100 byte long")
 
 }
+
+func ValidateList(v *validator.Validator, list *ReadList) {
+
+	v.Check(list.Name != "", "name", "must be provided")
+	v.Check(len(list.Name) <= 255, "name", "must not be more than 100 byte long")
+
+	v.Check(len(list.Description) <= 1000, "description", "must not be more than 1000 characters long")
+
+	v.Check(list.Created_by != "", "created_by", "must be provided")
+	v.Check(len(list.Created_by) <= 100, "created_by", "must not be more than 100 characters long")
+
+	// v.Check(list.Status != "", "status", "must be provided")
+	// v.Check(len(list.Status) <= 50, "status", "must not be more than 50 characters long")
+
+	// v.Check(list.Status == "Completed" || list.Status == "Currently Reading", "status", "must be Completed or Currently Reading")
+
+}
