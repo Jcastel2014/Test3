@@ -52,6 +52,17 @@ createList:
 	BODY='{"name":"test1","description":"test2","created_by":"carlos"}'; \
 	curl -X POST -d "$$BODY" localhost:3000/api/v1/lists; \
 
+.PHONY: getAllLists
+getAllLists:
+	@echo 'Displaying Lists'; \
+	curl -i localhost:3000/api/v1/lists?${filter}
+
+.PHONY: listAddBook
+listAddBook:
+	@echo 'Adding book to list'; \
+	BODY='{"bookid":1}'; \
+	curl -X POST -d "$$BODY" localhost:3000/api/v1/lists/${id}/books ; \
+
 
 .PHONY: run/rateLimite/enabled
 run/rateLimit,enabled:
@@ -78,11 +89,7 @@ listProducts:
 
 
 
-.PHONY: createReview
-createReview:
-	@echo 'Creating Review'; \
-	BODY=${CREATEREVIEW}; \
-	curl -X POST -d "$$BODY" localhost:3000/product/${id}/createReview ; \
+
 	
 .PHONY: getReview
 getReview:

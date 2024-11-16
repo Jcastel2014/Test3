@@ -32,6 +32,36 @@ func (b BookClub) DoesAuthorExists(author string) (error, int) {
 	return nil, id
 }
 
+func (b BookClub) DoesBookExists(id int64) error {
+	query := `
+		SELECT id
+		FROM books
+		WHERE id = $1
+	`
+	args := []any{id}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	return b.DB.QueryRowContext(ctx, query, args...).Scan(&id)
+
+}
+
+func (b BookClub) DoesListExists(id int64) error {
+	query := `
+		SELECT id
+		FROM readList
+		WHERE id = $1
+	`
+	args := []any{id}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	return b.DB.QueryRowContext(ctx, query, args...).Scan(&id)
+
+}
+
 func ValidateBook(v *validator.Validator, book *Book) {
 
 	v.Check(book.Title != "", "title", "must be provided")

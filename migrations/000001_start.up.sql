@@ -50,3 +50,9 @@ CREATE TABLE book_authors (
     book_id INT REFERENCES books(id) ON DELETE CASCADE,
     author_id INT REFERENCES authors(id)
 );
+
+CREATE TABLE book_list (
+    id SERIAL PRIMARY KEY,
+    book_id INT REFERENCES books(id) ON DELETE CASCADE,
+    list_id INT REFERENCES readList(id)
+);

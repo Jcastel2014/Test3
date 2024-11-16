@@ -26,12 +26,14 @@ func (a *appDependencies) routes() http.Handler {
 	router.HandlerFunc(http.MethodGet, "/api/v1/book/search", a.searchBook)
 
 	// GET    /api/v1/lists              # Get all reading lists
+	router.HandlerFunc(http.MethodGet, "/api/v1/lists", a.getAllLists)
 	// GET    /api/v1/lists/{id}         # Get specific reading list
 	// POST   /api/v1/lists              # Create new reading list
 	router.HandlerFunc(http.MethodPost, "/api/v1/lists", a.postReadingList)
 	// PUT    /api/v1/lists/{id}         # Update reading list
 	// DELETE /api/v1/lists/{id}         # Delete reading list
 	// POST   /api/v1/lists/{id}/books   # Add book to reading list
+	router.HandlerFunc(http.MethodPost, "/api/v1/lists/:id/books", a.listAddBook)
 	// DELETE /api/v1/lists/{id}/books   # Remove book from reading list
 
 	// router.HandlerFunc(http.MethodPost, "/createProduct", a.createProduct)
