@@ -282,6 +282,45 @@ func (a *appDependencies) GetAllBooks(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (a *appDependencies) searchBook(w http.ResponseWriter, r *http.Request) {
+	var queryParametersData struct {
+		Title  string
+		Author string
+		Genre  string
+		data.Filters
+	}
+
+	queryParameters := r.URL.Query()
+	queryParametersData.Title = a.getSingleQueryParameters(queryParameters, "title", "")
+	queryParametersData.Author = a.getSingleQueryParameters(queryParameters, "author", "")
+	queryParametersData.Genre = a.getSingleQueryParameters(queryParameters, "genre", "")
+
+	v := validator.New()
+
+	data.ValidateFilters(v, queryParametersData.Filters)
+	if !v.IsEmpty() {
+		a.failedValidationResponse(w, r, v.Errors)
+		return
+	}
+
+	review, err := a.bookclub.SearchBook(queryParametersData.Title, queryParametersData.Author, queryParametersData.Genre)
+
+	if err != nil {
+		a.serverErrResponse(w, r, err)
+		return
+	}
+
+	data := envelope{
+		"review": review,
+	}
+
+	err = a.writeJSON(w, http.StatusOK, data, nil)
+
+	if err != nil {
+		a.serverErrResponse(w, r, err)
+	}
+}
+
 // func (a *appDependencies) SortReviews(w http.ResponseWriter, r *http.Request) {
 
 // 	var queryParametersData struct {

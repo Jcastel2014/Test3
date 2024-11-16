@@ -17,6 +17,7 @@ func (a *appDependencies) routes() http.Handler {
 	router.HandlerFunc(http.MethodPost, "/api/v1/books", a.postBook)
 	router.HandlerFunc(http.MethodPut, "/api/v1/books/:id", a.PutBook)
 	router.HandlerFunc(http.MethodDelete, "/api/v1/books/:id", a.deleteBook)
+	router.HandlerFunc(http.MethodGet, "/api/v1/book/search", a.searchBook)
 
 	// router.HandlerFunc(http.MethodPost, "/createProduct", a.createProduct)
 	// router.HandlerFunc(http.MethodGet, "/displayProduct/:id", a.displayProduct)

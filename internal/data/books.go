@@ -292,6 +292,55 @@ func (b BookClub) DeleteBook(id int64) error {
 
 }
 
+func (b BookClub) SearchBook(title string, author string, genre string) ([]*Book, error) {
+
+	query := `
+        SELECT B.id, B.title, B.isbn, A.name AS author, B.publication_date, B.genre, B.description, B.average_rating
+		FROM books AS B
+		INNER JOIN book_authors AS BA 
+		ON B.id = BA.book_id
+		INNER JOIN authors AS A 
+		ON A.id = BA.author_id
+        WHERE (to_tsvector('simple', B.title) @@
+              plainto_tsquery('simple', $1) OR $1 = '') 
+        AND (to_tsvector('simple', author) @@ 
+             plainto_tsquery('simple', $2) OR $2 = '') 
+		AND (to_tsvector('simple', B.genre) @@ 
+             plainto_tsquery('simple', $3) OR $2 = '') 
+        ORDER BY id  
+     `
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	rows, err := b.DB.QueryContext(ctx, query, title, author, genre)
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	books := []*Book{}
+
+	for rows.Next() {
+		var book Book
+		err := rows.Scan(&book.ID, &book.Title, &book.ISBN, &book.Author, &book.Publication_Date, &book.Genre, &book.Description, &book.Average_rating)
+		if err != nil {
+			return nil, err
+		}
+
+		books = append(books, &book)
+	}
+
+	err = rows.Err()
+	if err != nil {
+		return nil, err
+	}
+
+	return books, nil
+
+}
+
 // func (p ProductModel) DoesProductExists(id int64) error {
 // 	query := `
 // 		SELECT COUNT(*)
