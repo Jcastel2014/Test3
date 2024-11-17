@@ -109,6 +109,21 @@ func (b BookClub) DoesListExists(id int64) error {
 
 }
 
+func (b BookClub) DoesUserExists(id int64) error {
+	query := `
+		SELECT id
+		FROM users
+		WHERE id = $1
+	`
+	args := []any{id}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	return b.DB.QueryRowContext(ctx, query, args...).Scan(&id)
+
+}
+
 func ValidateBook(v *validator.Validator, book *Book) {
 
 	v.Check(book.Title != "", "title", "must be provided")

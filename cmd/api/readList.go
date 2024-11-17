@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/Jcastel2014/test3/internal/data"
@@ -164,6 +165,107 @@ func (a *appDependencies) getList(w http.ResponseWriter, r *http.Request) {
 			a.serverErrResponse(w, r, err)
 		}
 
+		return
+	}
+
+	data := envelope{
+		"readList": readList,
+	}
+
+	err = a.writeJSON(w, http.StatusOK, data, nil)
+	if err != nil {
+		a.serverErrResponse(w, r, err)
+		return
+	}
+
+}
+
+func (a *appDependencies) putReadingList(w http.ResponseWriter, r *http.Request) {
+
+	id, err := a.readIDParam(r)
+
+	if err != nil {
+		a.notFoundResponse(w, r)
+		return
+	}
+
+	readList, err := a.bookclub.GetList(id)
+
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			a.notFoundResponse(w, r)
+		default:
+			a.serverErrResponse(w, r, err)
+		}
+
+		return
+	}
+
+	var incomingData struct {
+		Name        *string `json:"name"`
+		Description *string `json:"description"`
+		Created_by  *string `json:"created_by"` //takes an intiger
+		Status      *string `json:"status"`
+	}
+
+	err = a.readJSON(w, r, &incomingData)
+
+	if err != nil {
+		a.badRequestResponse(w, r, err)
+		return
+	}
+
+	if incomingData.Name != nil {
+		readList.Name = *incomingData.Name
+	}
+
+	if incomingData.Description != nil {
+		readList.Description = *incomingData.Description
+	}
+
+	var uid int64
+	if incomingData.Created_by != nil {
+
+		uid, err = toInt(*incomingData.Created_by)
+
+		if err != nil {
+			a.badRequestResponse(w, r, err)
+		}
+
+	} else {
+		uid = 0
+	}
+
+	if incomingData.Status != nil {
+		readList.Status = *incomingData.Status
+	}
+
+	var status int64
+
+	log.Println(readList.Status)
+	if readList.Status == "Completed" {
+		status = 2
+	} else if readList.Status == "Currently Reading" {
+		status = 1
+	} else {
+		err := errors.New("unable to find Status")
+		a.badRequestResponse(w, r, err)
+	}
+
+	v := validator.New()
+
+	data.ValidateList(v, readList)
+	if !v.IsEmpty() {
+		a.failedValidationResponse(w, r, v.Errors)
+
+		return
+	}
+
+	err = a.bookclub.UpdateList(readList, id, uid, status)
+
+	if err != nil {
+		a.serverErrResponse(w, r, err)
 		return
 	}
 

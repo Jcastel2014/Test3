@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"log"
 	"time"
 )
 
@@ -144,5 +145,52 @@ func (b BookClub) GetList(id int64) (*ReadList, error) {
 	readList.Book, _ = b.GetAllById(id)
 
 	return &readList, nil
+
+}
+
+func (b BookClub) UpdateList(readList *ReadList, id int64, uid int64, status int64) error {
+
+	err := b.DoesUserExists(uid)
+
+	if uid != 0 {
+		if err != nil {
+
+			return err
+		}
+	}
+
+	if uid == 0 {
+
+		query := `
+		SELECT created_by FROM readList WHERE id=$1
+		`
+
+		args := []any{id}
+		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+		defer cancel()
+
+		err := b.DB.QueryRowContext(ctx, query, args...).Scan(&uid)
+
+		if err != nil {
+			return err
+		}
+	}
+
+	query := `
+	UPDATE readList
+	SET name=$1, description=$2, created_by=$3, status=$4
+	WHERE id = $5
+	RETURNING id
+
+
+	`
+
+	log.Println(status)
+
+	args := []any{readList.Name, readList.Description, uid, status, id}
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	return b.DB.QueryRowContext(ctx, query, args...).Scan(&id)
 
 }

@@ -32,6 +32,7 @@ func (a *appDependencies) routes() http.Handler {
 	// POST   /api/v1/lists              # Create new reading list
 	router.HandlerFunc(http.MethodPost, "/api/v1/lists", a.postReadingList)
 	// PUT    /api/v1/lists/{id}         # Update reading list
+	router.HandlerFunc(http.MethodPut, "/api/v1/lists/:id", a.putReadingList)
 	// DELETE /api/v1/lists/{id}         # Delete reading list
 	// POST   /api/v1/lists/{id}/books   # Add book to reading list
 	router.HandlerFunc(http.MethodPost, "/api/v1/lists/:id/books", a.listAddBook)

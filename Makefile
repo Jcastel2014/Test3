@@ -69,6 +69,12 @@ getList:
 	curl -i localhost:3000/api/v1/lists/${id}
 
 
+.PHONY: updateList
+updateList:
+	@echo 'Updating List'; \
+	curl -X PUT localhost:3000/api/v1/lists/${id} -d '{"status":"Completed", "name":"updateTest2"}'
+
+
 .PHONY: run/rateLimite/enabled
 run/rateLimit,enabled:
 	@echo 'Running Product API /w Rate Limit...'
@@ -98,10 +104,7 @@ listProducts:
 	
 
 	
-.PHONY: updateReview
-updateReview:
-	@echo 'Updating Review'; \
-	curl -X PATCH localhost:3000/product/${id}/updateReview/${rid} -d '{"rating":1, "comment":"Yes!"}'
+
 	
 .PHONY: deleteReview
 deleteReview:

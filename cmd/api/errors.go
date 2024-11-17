@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 )
 
@@ -50,4 +51,8 @@ func (a *appDependencies) rateLimitExceededResponse(w http.ResponseWriter, r *ht
 	message := "rate limit exceeded XDDD"
 
 	a.errResponseJSON(w, r, http.StatusTooManyRequests, message)
+}
+
+func (a *appDependencies) hello() {
+	log.Println("hello")
 }
