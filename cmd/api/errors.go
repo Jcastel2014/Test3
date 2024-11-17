@@ -56,3 +56,8 @@ func (a *appDependencies) rateLimitExceededResponse(w http.ResponseWriter, r *ht
 func (a *appDependencies) hello() {
 	log.Println("hello")
 }
+
+func (a *appDependencies) bookNotFound(w http.ResponseWriter, r *http.Request, err error) {
+
+	a.errResponseJSON(w, r, http.StatusBadRequest, err.Error())
+}

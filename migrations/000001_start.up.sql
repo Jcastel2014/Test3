@@ -60,3 +60,16 @@ CREATE TABLE book_list (
     book_id INT REFERENCES books(id) ON DELETE CASCADE,
     list_id INT REFERENCES readList(id) ON DELETE CASCADE
 );
+
+
+--     - Book Reviews { id, book id, user id, rating, the actual review of the book, review date }
+
+DROP TABLE IF EXISTS book_reviews;
+CREATE TABLE book_reviews (
+    id SERIAL PRIMARY KEY,
+    book_id INT REFERENCES books(id) ON DELETE CASCADE,
+    user_id INT REFERENCES users(id),
+    review text NOT NULL,
+    rating DECIMAL(3,2),
+    created_at DATE
+);

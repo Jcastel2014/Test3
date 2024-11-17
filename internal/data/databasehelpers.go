@@ -124,6 +124,25 @@ func (b BookClub) DoesUserExists(id int64) error {
 
 }
 
+func (b BookClub) UpdateAverage(id int64) error {
+
+	query := `
+	UPDATE books
+	SET average_rating = (select AVG(rating) from book_reviews WHERE book_id = $1)
+	WHERE id = $1
+`
+	args := []any{id}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	_, err := b.DB.ExecContext(ctx, query, args...)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func ValidateBook(v *validator.Validator, book *Book) {
 
 	v.Check(book.Title != "", "title", "must be provided")
@@ -164,4 +183,13 @@ func ValidateList(v *validator.Validator, list *ReadList) {
 
 	// v.Check(list.Status == "Completed" || list.Status == "Currently Reading", "status", "must be Completed or Currently Reading")
 
+}
+
+func ValidateReview(v *validator.Validator, review *ReviewIn) {
+
+	v.Check(review.Review != "", "name", "must be provided")
+	v.Check(len(review.Review) <= 255, "name", "must not be more than 100 byte long")
+
+	v.Check(review.Rating > 0, "rating", "rating must be greater than 0")
+	v.Check(review.Rating <= 10, "rating", "rating must be less than 10")
 }

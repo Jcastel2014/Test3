@@ -40,6 +40,12 @@ func (a *appDependencies) routes() http.Handler {
 	// DELETE /api/v1/lists/{id}/books   # Remove book from reading list
 	router.HandlerFunc(http.MethodDelete, "/api/v1/lists/:id/books", a.deleteFromList)
 
+	// GET    /api/v1/books/{id}/reviews # Get all reviews for a book
+	// POST   /api/v1/books/{id}/reviews # Add new review
+	router.HandlerFunc(http.MethodPost, "/api/v1/books/:id/reviews", a.postReview)
+	// PUT    /api/v1/reviews/{id}       # Update review
+	// DELETE /api/v1/reviews/{id}       # Delete review
+
 	// router.HandlerFunc(http.MethodPost, "/createProduct", a.createProduct)
 	// router.HandlerFunc(http.MethodGet, "/displayProduct/:id", a.displayProduct)
 	// router.HandlerFunc(http.MethodDelete, "/deleteProduct/:id", a.deleteProduct)

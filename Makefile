@@ -85,6 +85,13 @@ deleteFromList:
 	curl -X DELETE localhost:3000/api/v1/lists/${id}/books
 
 
+.PHONY: addBookReview
+addBookReview:
+	@echo 'Adding book review'; \
+	BODY='{"user_id":1, "review":"terrible", "rating":1}'; \
+	curl -X POST -d "$$BODY" localhost:3000/api/v1/books/${id}/reviews ; \
+
+
 .PHONY: run/rateLimite/enabled
 run/rateLimit,enabled:
 	@echo 'Running Product API /w Rate Limit...'
