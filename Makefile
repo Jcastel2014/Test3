@@ -91,6 +91,11 @@ addBookReview:
 	BODY='{"user_id":1, "review":"terrible", "rating":1}'; \
 	curl -X POST -d "$$BODY" localhost:3000/api/v1/books/${id}/reviews ; \
 
+.PHONY: getAllReviews
+getAllReviews:
+	@echo 'Displaying Lists'; \
+	curl -i localhost:3000/api/v1/books/${id}/reviews?${filter}
+
 
 .PHONY: run/rateLimite/enabled
 run/rateLimit,enabled:

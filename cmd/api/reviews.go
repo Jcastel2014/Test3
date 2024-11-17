@@ -77,3 +77,66 @@ func (a *appDependencies) postReview(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "%+v\n", incomingData)
 
 }
+
+func (a *appDependencies) getReviews(w http.ResponseWriter, r *http.Request) {
+
+	id, err := a.readIDParam(r)
+
+	if err != nil {
+		a.notFoundResponse(w, r)
+		return
+	}
+
+	var queryParametersData struct {
+		ID int64
+		data.Filters
+	}
+
+	queryParametersData.ID = id
+
+	queryParameters := r.URL.Query()
+
+	queryParametersData.Filters.Sort = a.getSingleQueryParameters(queryParameters, "sort", "id")
+	// queryParametersData.Filters.Sort = a.getSingleQueryParameters(queryParameters, "sort", "rating")
+	// queryParametersData.Filters.Sort = a.getSingleQueryParameters(queryParameters, "sort", "helpful_count")
+	// queryParametersData.Filters.Sort = a.getSingleQueryParameters(queryParameters, "sort", "created_at")
+	// queryParametersData.Filters.Sort = a.getSingleQueryParameters(queryParameters, "sort", "updated_at")
+
+	// queryParametersData.Filters.SortSafeList = []string{"id", "rating", "helpful_count", "created_at", "updated_at", "-id", "-rating", "-helpful_count", "-created_at", "-updated_at"}
+	queryParametersData.Filters.SortSafeList = []string{"id", "-id"}
+
+	v := validator.New()
+
+	queryParametersData.Filters.Page = a.getSingleIntegerParameters(queryParameters, "page", 1, v)
+	queryParametersData.Filters.PageSize = a.getSingleIntegerParameters(queryParameters, "page_size", 10, v)
+
+	data.ValidateFilters(v, queryParametersData.Filters)
+	if !v.IsEmpty() {
+		a.failedValidationResponse(w, r, v.Errors)
+		return
+	}
+
+	// product_id, err := toInt(queryParametersData.Product)
+
+	// if err != nil {
+	// 	a.serverErrResponse(w, r, err)
+	// 	return
+	// }
+
+	review, err := a.bookclub.GetAllReviews(queryParametersData.Filters, queryParametersData.ID)
+
+	if err != nil {
+		a.serverErrResponse(w, r, err)
+		return
+	}
+
+	data := envelope{
+		"review": review,
+	}
+
+	err = a.writeJSON(w, http.StatusOK, data, nil)
+
+	if err != nil {
+		a.serverErrResponse(w, r, err)
+	}
+}

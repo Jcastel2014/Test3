@@ -25,3 +25,8 @@ ON R.created_by = U.id
 INNER JOIN status AS S 
 ON R.status = S.id
 
+
+SELECT B.title, U.user_name, R.review, R.rating, R.created_at FROM book_reviews AS R
+INNER JOIN books AS B ON R.book_id = B.id 
+INNER JOIN users AS U ON R.user_id = U.id
+WHERE R.book_id = 1;
