@@ -194,3 +194,57 @@ func (b BookClub) UpdateList(readList *ReadList, id int64, uid int64, status int
 	return b.DB.QueryRowContext(ctx, query, args...).Scan(&id)
 
 }
+
+func (b BookClub) DeleteList(id int64) error {
+
+	query := `
+	DELETE FROM readList
+	WHERE id = $1
+	`
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	result, err := b.DB.ExecContext(ctx, query, id)
+	if err != nil {
+		return err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if rowsAffected == 0 {
+		return ErrRecordNotFound
+	}
+
+	return nil
+}
+
+func (b BookClub) DeleteFromList(id int64) error {
+
+	query := `
+	DELETE FROM book_list
+	WHERE book_id = $1
+	`
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	result, err := b.DB.ExecContext(ctx, query, id)
+	if err != nil {
+		return err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if rowsAffected == 0 {
+		return ErrRecordNotFound
+	}
+
+	return nil
+}

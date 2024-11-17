@@ -1,3 +1,4 @@
+DROP TABLE IF EXISTS status;
 CREATE TABLE status (
     id SERIAL PRIMARY KEY,
     name VARCHAR (20) NOT NULL
@@ -29,7 +30,7 @@ CREATE TABLE readList (
 
 
 
-
+DROP TABLE IF EXISTS books;
 CREATE TABLE books (
     id SERIAL PRIMARY KEY,
     title VARCHAR(255) NOT NULL,
@@ -45,14 +46,17 @@ CREATE TABLE authors(
     name VARCHAR(255) NOT NULL
 );
 
+
+DROP TABLE IF EXISTS book_authors;
 CREATE TABLE book_authors (
     id SERIAL PRIMARY KEY,
     book_id INT REFERENCES books(id) ON DELETE CASCADE,
-    author_id INT REFERENCES authors(id)
+    author_id INT REFERENCES authors(id) ON DELETE CASCADE
 );
 
+DROP TABLE IF EXISTS book_list;
 CREATE TABLE book_list (
     id SERIAL PRIMARY KEY,
     book_id INT REFERENCES books(id) ON DELETE CASCADE,
-    list_id INT REFERENCES readList(id)
+    list_id INT REFERENCES readList(id) ON DELETE CASCADE
 );

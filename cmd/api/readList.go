@@ -280,3 +280,69 @@ func (a *appDependencies) putReadingList(w http.ResponseWriter, r *http.Request)
 	}
 
 }
+
+func (a *appDependencies) deleteList(w http.ResponseWriter, r *http.Request) {
+
+	id, err := a.readIDParam(r)
+
+	if err != nil {
+		a.notFoundResponse(w, r)
+		return
+	}
+
+	err = a.bookclub.DeleteList(id)
+
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			a.notFoundResponse(w, r)
+		default:
+			a.serverErrResponse(w, r, err)
+		}
+
+		return
+	}
+
+	data := envelope{
+		"message": "list successfully deleted",
+	}
+
+	err = a.writeJSON(w, http.StatusOK, data, nil)
+	if err != nil {
+		a.serverErrResponse(w, r, err)
+	}
+
+}
+
+func (a *appDependencies) deleteFromList(w http.ResponseWriter, r *http.Request) {
+
+	id, err := a.readIDParam(r)
+
+	if err != nil {
+		a.notFoundResponse(w, r)
+		return
+	}
+
+	err = a.bookclub.DeleteFromList(id)
+
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			a.notFoundResponse(w, r)
+		default:
+			a.serverErrResponse(w, r, err)
+		}
+
+		return
+	}
+
+	data := envelope{
+		"message": "book successfully deleted from list",
+	}
+
+	err = a.writeJSON(w, http.StatusOK, data, nil)
+	if err != nil {
+		a.serverErrResponse(w, r, err)
+	}
+
+}

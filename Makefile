@@ -60,7 +60,7 @@ getAllLists:
 .PHONY: listAddBook
 listAddBook:
 	@echo 'Adding book to list'; \
-	BODY='{"bookid":2}'; \
+	BODY='{"bookid":1}'; \
 	curl -X POST -d "$$BODY" localhost:3000/api/v1/lists/${id}/books ; \
 
 .PHONY: getList
@@ -73,6 +73,16 @@ getList:
 updateList:
 	@echo 'Updating List'; \
 	curl -X PUT localhost:3000/api/v1/lists/${id} -d '{"status":"Completed", "name":"updateTest2"}'
+
+.PHONY: deleteList
+deleteList:
+	@echo 'Deleting Product'; \
+	curl -X DELETE localhost:3000/api/v1/lists/${id} 
+
+.PHONY: deleteFromList
+deleteFromList:
+	@echo 'Deleting Product'; \
+	curl -X DELETE localhost:3000/api/v1/lists/${id}/books
 
 
 .PHONY: run/rateLimite/enabled
