@@ -88,7 +88,7 @@ deleteFromList:
 .PHONY: addBookReview
 addBookReview:
 	@echo 'Adding book review'; \
-	BODY='{"user_id":1, "review":"terrible", "rating":1}'; \
+	BODY='{"user_id":1, "review":"terrible", "rating":5}'; \
 	curl -X POST -d "$$BODY" localhost:3000/api/v1/books/${id}/reviews ; \
 
 .PHONY: getAllReviews
@@ -96,6 +96,16 @@ getAllReviews:
 	@echo 'Displaying Lists'; \
 	curl -i localhost:3000/api/v1/books/${id}/reviews?${filter}
 
+.PHONY: deleteReview
+deleteReview:
+	@echo 'Deleting Review'; \
+	curl -X DELETE localhost:3000/api/v1/reviews/${id}
+
+
+.PHONY: putReview
+putReview:
+	@echo 'Updating Product ${id}'; \
+	curl -X PUT localhost:3000/api/v1/reviews/${id} -d '{"rating":2.00}'
 
 .PHONY: run/rateLimite/enabled
 run/rateLimit,enabled:
@@ -127,11 +137,7 @@ listProducts:
 
 	
 
-	
-.PHONY: deleteReview
-deleteReview:
-	@echo 'Deleting Product'; \
-	curl -X DELETE localhost:3000/product/${id}/deleteReview/${rid}
+
 
 .PHONY: createProduct
 createProduct:

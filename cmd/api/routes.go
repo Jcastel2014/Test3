@@ -45,7 +45,9 @@ func (a *appDependencies) routes() http.Handler {
 	// POST   /api/v1/books/{id}/reviews # Add new review
 	router.HandlerFunc(http.MethodPost, "/api/v1/books/:id/reviews", a.postReview)
 	// PUT    /api/v1/reviews/{id}       # Update review
+	router.HandlerFunc(http.MethodPut, "/api/v1/reviews/:id", a.putReview)
 	// DELETE /api/v1/reviews/{id}       # Delete review
+	router.HandlerFunc(http.MethodDelete, "/api/v1/reviews/:id", a.deleteReview)
 
 	// router.HandlerFunc(http.MethodPost, "/createProduct", a.createProduct)
 	// router.HandlerFunc(http.MethodGet, "/displayProduct/:id", a.displayProduct)

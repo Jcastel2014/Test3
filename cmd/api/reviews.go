@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"time"
@@ -139,4 +140,107 @@ func (a *appDependencies) getReviews(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		a.serverErrResponse(w, r, err)
 	}
+}
+
+func (a *appDependencies) deleteReview(w http.ResponseWriter, r *http.Request) {
+
+	id, err := a.readIDParam(r)
+
+	if err != nil {
+		a.notFoundResponse(w, r)
+		return
+	}
+
+	err = a.bookclub.DeleteReview(id)
+
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			a.notFoundResponse(w, r)
+		default:
+			a.serverErrResponse(w, r, err)
+		}
+
+		return
+	}
+
+	data := envelope{
+		"message": "review successfully deleted",
+	}
+
+	err = a.writeJSON(w, http.StatusOK, data, nil)
+	if err != nil {
+		a.serverErrResponse(w, r, err)
+	}
+
+}
+
+func (a *appDependencies) putReview(w http.ResponseWriter, r *http.Request) {
+
+	id, err := a.readIDParam(r)
+
+	if err != nil {
+		a.notFoundResponse(w, r)
+		return
+	}
+
+	review, err := a.bookclub.GetReview(id)
+
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			a.notFoundResponse(w, r)
+		default:
+			a.serverErrResponse(w, r, err)
+		}
+
+		return
+	}
+
+	var incomingData struct {
+		Review *string  `json:"review"`
+		Rating *float64 `json:"rating"`
+	}
+
+	err = a.readJSON(w, r, &incomingData)
+
+	if err != nil {
+		a.badRequestResponse(w, r, err)
+		return
+	}
+
+	if incomingData.Review != nil {
+		review.Review = *incomingData.Review
+	}
+
+	if incomingData.Rating != nil {
+		review.Rating = *incomingData.Rating
+	}
+
+	v := validator.New()
+
+	data.ValidateReview(v, review)
+	if !v.IsEmpty() {
+		a.failedValidationResponse(w, r, v.Errors)
+
+		return
+	}
+
+	err = a.bookclub.UpdateReview(review, id)
+
+	if err != nil {
+		a.serverErrResponse(w, r, err)
+		return
+	}
+
+	data := envelope{
+		"review": review,
+	}
+
+	err = a.writeJSON(w, http.StatusOK, data, nil)
+	if err != nil {
+		a.serverErrResponse(w, r, err)
+		return
+	}
+
 }

@@ -2,7 +2,10 @@ package data
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"fmt"
+	"log"
 	"time"
 )
 
@@ -104,4 +107,84 @@ func (b BookClub) GetAllReviews(filters Filters, id int64) ([]*Review, error) {
 	}
 
 	return reviews, nil
+}
+
+func (b BookClub) DeleteReview(id int64) error {
+
+	query := `
+	DELETE FROM book_reviews
+	WHERE id = $1
+	RETURNING book_id
+	`
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+	var bookID int64
+	err := b.DB.QueryRowContext(ctx, query, id).Scan(&bookID)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return ErrRecordNotFound
+		}
+		return err
+	}
+
+	log.Println(bookID)
+	return b.UpdateAverage(bookID)
+}
+
+func (b BookClub) GetReview(id int64) (*ReviewIn, error) {
+	if id < 1 {
+		return nil, ErrRecordNotFound
+	}
+	query := `
+	SELECT id, book_id, user_id, review, rating, created_at
+	FROM book_reviews 
+	WHERE id = $1
+
+	`
+
+	args := []any{id}
+
+	var review ReviewIn
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	err := b.DB.QueryRowContext(ctx, query, args...).Scan(&review.ID, &review.Book_id, &review.User_id, &review.Review, &review.Rating, &review.Created_at)
+	if err != nil {
+		log.Println("hello")
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return nil, ErrRecordNotFound
+		default:
+			return nil, err
+		}
+	}
+	return &review, nil
+
+}
+
+func (b BookClub) UpdateReview(review *ReviewIn, id int64) error {
+
+	query := `
+	UPDATE book_reviews
+	SET review = $2, rating = $3
+	WHERE id = $1
+	RETURNING book_id
+
+
+	`
+
+	args := []any{id, review.Review, review.Rating}
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	err := b.DB.QueryRowContext(ctx, query, args...).Scan(&review.Book_id)
+
+	if err != nil {
+		return err
+	}
+	log.Println("swag")
+	return b.UpdateAverage(review.Book_id)
+
 }
