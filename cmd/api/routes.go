@@ -49,6 +49,9 @@ func (a *appDependencies) routes() http.Handler {
 	// DELETE /api/v1/reviews/{id}       # Delete review
 	router.HandlerFunc(http.MethodDelete, "/api/v1/reviews/:id", a.deleteReview)
 
+	router.HandlerFunc(http.MethodPost, "/v1/users", a.registerUserHandler)
+	router.HandlerFunc(http.MethodPut, "/v1/users/activated", a.activateUserHandler)
+
 	// router.HandlerFunc(http.MethodPost, "/createProduct", a.createProduct)
 	// router.HandlerFunc(http.MethodGet, "/displayProduct/:id", a.displayProduct)
 	// router.HandlerFunc(http.MethodDelete, "/deleteProduct/:id", a.deleteProduct)

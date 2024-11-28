@@ -7,14 +7,15 @@ CREATE TABLE status (
 insert into status(name) values ('Completed');
 insert into status(name) values ('Currently Reading');
 
-
 DROP TABLE IF EXISTS users;
 CREATE TABLE users (
-    id SERIAL PRIMARY KEY,
-    user_name VARCHAR(255) NOT NULL,
-    email VARCHAR(255) NOT NULL,
+    id bigserial PRIMARY KEY,
+    created_at timestamp(0) WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    username text NOT NULL,
+    email VARCHAR (255) NOT NULL,
     password_hash bytea NOT NULL,
-    activated bool NOT NULL
+    activated bool NOT NULL,
+    version integer NOT NULL DEFAULT 1
 );
 
 DROP TABLE IF EXISTS readList;
@@ -72,4 +73,12 @@ CREATE TABLE book_reviews (
     review text NOT NULL,
     rating DECIMAL(3,2),
     created_at DATE
+);
+DROP TABLE IF EXISTS tokens;
+
+CREATE TABLE tokens (
+    hash bytea PRIMARY KEY,
+    user_id bigint NOT NULL REFERENCES users ON DELETE CASCADE,
+    expiry timestamp(0) WITH TIME ZONE NOT NULL,
+    scope text NOT NULL
 );

@@ -158,3 +158,17 @@ func toInt(s string) (int64, error) {
 
 	return n, nil
 }
+
+func (a *appDependencies) background(fn func()) {
+	a.wg.Add(1)
+	go func() {
+		defer a.wg.Done()
+		defer func() {
+			err := recover()
+			if err != nil {
+				a.logger.Error(fmt.Sprintf("%v", err))
+			}
+		}()
+		fn() //running the function that was passed to run as parameter
+	}()
+}

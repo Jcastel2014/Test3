@@ -6,7 +6,11 @@ import (
 	"flag"
 	"log/slog"
 	"os"
+	"sync"
 	"time"
+
+	"github.com/Jcastel2014/test3/internal/mailer"
+	_ "github.com/Jcastel2014/test3/internal/mailer"
 
 	"github.com/Jcastel2014/test3/internal/data"
 	_ "github.com/lib/pq"
@@ -26,12 +30,24 @@ type serverConfig struct {
 		burst   int
 		enabled bool
 	}
+
+	smtp struct {
+		host     string
+		port     int
+		username string
+		password string
+		sender   string
+	}
 }
 
 type appDependencies struct {
-	config   serverConfig
-	logger   *slog.Logger
-	bookclub data.BookClub
+	config     serverConfig
+	logger     *slog.Logger
+	bookclub   data.BookClub
+	userModel  data.UserModel
+	mailer     mailer.Mailer
+	wg         sync.WaitGroup
+	tokenModel data.TokenModel
 }
 
 func openDB(settings serverConfig) (*sql.DB, error) {
@@ -55,6 +71,16 @@ func openDB(settings serverConfig) (*sql.DB, error) {
 
 func main() {
 	var settings serverConfig
+
+	flag.StringVar(&settings.smtp.host, "smtp-host", "sandbox.smtp.mailtrap.io", "SMTP host")
+	// We have port 25, 465, 587, 2525. If 25 doesn't work choose another
+	flag.IntVar(&settings.smtp.port, "smtp-port", 25, "SMTP port")
+	// Use your Username value provided by Mailtrap
+	flag.StringVar(&settings.smtp.username, "smtp-username", "3f971133693901", "SMTP username")
+
+	flag.StringVar(&settings.smtp.password, "smtp-password", "f17beb84e46527", "SMTP password")
+
+	flag.StringVar(&settings.smtp.sender, "smtp-sender", "Comments Community <no-reply@bookclubcommunity.javiercastellanos.net>", "SMTP sender")
 
 	flag.IntVar(&settings.port, "port", 4000, "Server Port")
 	flag.Float64Var(&settings.limiter.rps, "limiter-rps", 2, "Rate Limiter maximum requests per second")
@@ -80,9 +106,12 @@ func main() {
 	logger.Info("database connection pool established")
 
 	appInstance := &appDependencies{
-		config:   settings,
-		logger:   logger,
-		bookclub: data.BookClub{DB: db},
+		config:     settings,
+		logger:     logger,
+		bookclub:   data.BookClub{DB: db},
+		userModel:  data.UserModel{DB: db},
+		mailer:     mailer.New(settings.smtp.host, settings.smtp.port, settings.smtp.username, settings.smtp.password, settings.smtp.sender),
+		tokenModel: data.TokenModel{DB: db},
 	}
 
 	// apiServer := &http.Server{

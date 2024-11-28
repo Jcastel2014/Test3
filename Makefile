@@ -2,7 +2,7 @@ include .envrc
 
 .PHONY: run/api
 run/api:
-	@echo 'Running Product API...'
+	@echo 'Running BookClub API...'
 	@go run ./cmd/api -port=3000 -env=production -db-dsn=${BOOKCLUB_DB_DSN}
 
 .PHONY: db/psql

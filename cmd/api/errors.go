@@ -61,3 +61,10 @@ func (a *appDependencies) bookNotFound(w http.ResponseWriter, r *http.Request, e
 
 	a.errResponseJSON(w, r, http.StatusBadRequest, err.Error())
 }
+
+func (a *appDependencies) editConflictResponse(w http.ResponseWriter, r *http.Request) {
+
+	message := "unable to update the record due to an edit conflict, please try again"
+	a.errResponseJSON(w, r, http.StatusConflict, message)
+
+}

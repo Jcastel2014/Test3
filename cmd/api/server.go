@@ -34,7 +34,14 @@ func (a *appDependencies) serve() error {
 		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 		defer cancel()
 
-		shutdownError <- apiServer.Shutdown(ctx)
+		err := apiServer.Shutdown(ctx)
+		if err != nil {
+			shutdownError <- err
+		}
+		a.logger.Info("completing background tasks", "address", apiServer.Addr)
+		a.wg.Wait()
+		shutdownError <- nil
+
 	}()
 
 	a.logger.Info("starting server", "address", apiServer.Addr, "env", a.config.env)
